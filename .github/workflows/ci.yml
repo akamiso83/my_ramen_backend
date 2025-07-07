@@ -51,7 +51,7 @@ jobs:
 
       # 静的解析
       - name: Run Larastan
-        run: ./vendor/bin/phpstan analyse
+        run: ./vendor/bin/phpstan analyse --memory-limit=2G
 
       # テスト実行
       # - name: Run PHPUnit tests
