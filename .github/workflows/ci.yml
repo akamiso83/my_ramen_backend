@@ -1,0 +1,58 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      mysql:
+        image: mysql:8.0
+        ports:
+          - 3306:3306
+        env:
+          MYSQL_ROOT_PASSWORD: secret
+          MYSQL_DATABASE: laravel_test
+          MYSQL_USER: laravel
+          MYSQL_PASSWORD: laravel
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=3
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.3
+          extensions: pdo_mysql
+          coverage: none
+
+      - name: Install dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Wait for MySQL
+        run: sleep 15
+
+      # ここでテストDBをmigrateする
+      - name: Migrate database
+        run: php artisan migrate --env=testing --force
+
+      # コード整形チェック
+      - name: Run Pint
+        run: ./vendor/bin/pint --test
+
+      # 静的解析
+      - name: Run Larastan
+        run: ./vendor/bin/phpstan analyse
+
+      # テスト実行
+      # - name: Run PHPUnit tests
+      #   run: php artisan test
