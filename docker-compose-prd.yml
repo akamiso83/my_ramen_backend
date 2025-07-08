@@ -11,9 +11,6 @@ services:
       - ./:/var/www
     expose:
       - 9000
-    depends_on:
-      - db
-
   web:
     image: nginx:alpine
     container_name: my_ramen_backend_nginx

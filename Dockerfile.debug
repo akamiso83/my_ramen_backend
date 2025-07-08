@@ -1,0 +1,38 @@
+# Dockerfile.debug
+
+FROM php:8.3-fpm
+
+# PHP拡張
+RUN apt-get update && apt-get install -y \
+    zip \
+    unzip \
+    git \
+    libpng-dev \
+    libonig-dev \
+    libxml2-dev \
+    curl \
+    && docker-php-ext-install \
+        pdo_mysql \
+        mbstring \
+        exif \
+        pcntl \
+        bcmath \
+        gd
+
+# Xdebug インストール
+RUN pecl install xdebug && docker-php-ext-enable xdebug
+
+# Xdebug 設定追加
+COPY ./docker/xdebug/xdebug.ini /usr/local/etc/php/conf.d/xdebug.ini
+
+# Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# 作業ディレクトリ
+WORKDIR /var/www
+
+# Laravel アプリをコピー（← context が ../ なのでOK）
+COPY . .
+
+# Composer Install
+RUN composer install
